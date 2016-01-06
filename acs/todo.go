@@ -6,6 +6,36 @@ import (
 	"github.com/grunmax/GinRedisApi/utl"
 )
 
+func TodoGetKeys(match string, pool *redis.Pool) ([]string, error) {
+	c := pool.Get()
+	defer c.Close()
+	var items []string
+	const maxIterations = 20
+	const step = 100
+
+	results := make([]string, 0)
+	cursor := 0
+	for i := 0; i < maxIterations; i++ {
+		values, err := redis.Values(c.Do("SCAN", cursor, "MATCH", match, "COUNT", step))
+		if err != nil {
+			utl.Log("SCAN read error", err)
+			return nil, err
+		}
+
+		values, err = redis.Scan(values, &cursor, &items)
+		if err != nil {
+			utl.Log("SCAN scan error", err)
+			return nil, err
+		}
+
+		results = append(results, items...)
+		if cursor == 0 {
+			break
+		}
+	}
+	return results, nil
+}
+
 func TodoCreate(item dom.TodoItem, pool *redis.Pool) (*dom.TodoItem, error) {
 	c := pool.Get()
 	defer c.Close()
@@ -27,7 +57,13 @@ func TodoEdit(id string, item dom.TodoItem, pool *redis.Pool) (*dom.TodoItem, er
 	defer c.Close()
 	item.Id = id
 	key := "todo:" + item.Id
-	//return &item, nil
+	if exist, err := redis.Bool(c.Do("EXISTS", key)); err != nil {
+		utl.Log("check todo key error", err)
+		return nil, err
+	} else if !exist {
+		return nil, utl.MyErr{"no key"}
+	}
+
 	if _, err := c.Do("HMSET", key,
 		"title", item.Title,
 		"completed", item.Completed,

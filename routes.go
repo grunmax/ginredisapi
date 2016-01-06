@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/grunmax/GinRedisApi/acs"
+	"github.com/grunmax/GinRedisApi/ctr"
 	"github.com/grunmax/GinRedisApi/utl"
 	"net/http"
 )
@@ -27,7 +28,7 @@ func makeRoutes() http.Handler {
 		}
 	})
 
-	AddTodoRoutes(routes)
+	ctr.AddTodoRoutes(pool, routes)
 
 	return routes
 }

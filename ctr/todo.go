@@ -1,6 +1,7 @@
-package main
+package ctr
 
 import (
+	"github.com/garyburd/redigo/redis"
 	"github.com/gin-gonic/gin"
 	"github.com/grunmax/GinRedisApi/acs"
 	"github.com/grunmax/GinRedisApi/dom"
@@ -11,14 +12,18 @@ func Ok(c *gin.Context) {
 	c.String(200, "")
 }
 
-func AddTodoRoutes(routes *gin.Engine) {
-	//	todo := Todo{}
+func AddTodoRoutes(pool *redis.Pool, routes *gin.Engine) {
+
 	routes.OPTIONS("/todo", Ok)
 	routes.OPTIONS("/todo/:id", Ok)
 
-	//routes.GET("/todos", func(c *gin.Context) {
-	//	c.JSON(200, todo.All())
-	//})
+	routes.GET("/todo", func(c *gin.Context) {
+		if keys, err := acs.TodoGetKeys("todo:*", pool); err != nil {
+			c.JSON(400, utl.BodyErr("Todo get keys error"))
+		} else {
+			c.JSON(200, keys)
+		}
+	})
 
 	routes.GET("/todo/:id", func(c *gin.Context) {
 		id := c.Params.ByName("id")

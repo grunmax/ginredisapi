@@ -1,5 +1,9 @@
 package utl
 
+func TestKeys() []string {
+	return []string{"alfa", "zulu", "charlie"}
+}
+
 func BodyOk(message string) map[string]string {
 	result := map[string]string{}
 	result["status"] = "OK"
