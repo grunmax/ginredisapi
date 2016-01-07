@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/garyburd/redigo/redis"
+	"github.com/gin-gonic/gin"
 	"github.com/grunmax/GinRedisApi/utl"
-	"net/http"
 )
 
 var cfg *utl.Config
@@ -17,6 +17,9 @@ func init() {
 
 func main() {
 	defer pool.Close()
-	routes := makeRoutes()
-	http.ListenAndServe(cfg.HttpUrl, routes)
+	api := gin.Default()
+	//gin.SetMode(gin.ReleaseMode) // debug default
+	useMiddleware(api)
+	makeRoutes(api)
+	api.Run(cfg.HttpUrl)
 }

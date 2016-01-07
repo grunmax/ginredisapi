@@ -10,12 +10,11 @@ func TodoGetKeys(match string, pool *redis.Pool) ([]string, error) {
 	c := pool.Get()
 	defer c.Close()
 	var items []string
-	const maxIterations = 20
-	const step = 100
+	const step = 1000
 
 	results := make([]string, 0)
 	cursor := 0
-	for i := 0; i < maxIterations; i++ {
+	for {
 		values, err := redis.Values(c.Do("SCAN", cursor, "MATCH", match, "COUNT", step))
 		if err != nil {
 			utl.Log("SCAN read error", err)
@@ -63,7 +62,6 @@ func TodoEdit(id string, item dom.TodoItem, pool *redis.Pool) (*dom.TodoItem, er
 	} else if !exist {
 		return nil, utl.MyErr{"no key"}
 	}
-
 	if _, err := c.Do("HMSET", key,
 		"title", item.Title,
 		"completed", item.Completed,

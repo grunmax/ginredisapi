@@ -6,16 +6,13 @@ import (
 	"github.com/grunmax/GinRedisApi/acs"
 	"github.com/grunmax/GinRedisApi/dom"
 	"github.com/grunmax/GinRedisApi/utl"
+	"gopkg.in/validator.v2"
 )
-
-func Ok(c *gin.Context) {
-	c.String(200, "")
-}
 
 func AddTodoRoutes(pool *redis.Pool, routes *gin.Engine) {
 
-	routes.OPTIONS("/todo", Ok)
-	routes.OPTIONS("/todo/:id", Ok)
+	routes.OPTIONS("/todo", func(c *gin.Context) { c.String(200, "") })
+	routes.OPTIONS("/todo/:id", func(c *gin.Context) { c.String(200, "") })
 
 	routes.GET("/todo", func(c *gin.Context) {
 		if keys, err := acs.TodoGetKeys("todo:*", pool); err != nil {
@@ -36,11 +33,16 @@ func AddTodoRoutes(pool *redis.Pool, routes *gin.Engine) {
 	})
 
 	routes.POST("/todo", func(c *gin.Context) {
-		template := dom.TodoItem{}
-		if err := c.Bind(&template); err != nil {
-			c.JSON(400, utl.BodyErr("wrong Todo params"))
+		todoForm := dom.TodoItem{}
+		if err := c.Bind(&todoForm); err != nil {
+			c.JSON(400, utl.BodyErr("error bind post form"))
+			return
 		}
-		if item, err := acs.TodoCreate(template, pool); err != nil {
+		if err := validator.Validate(todoForm); err != nil {
+			c.JSON(400, utl.BodyErr(err.Error()))
+			return
+		}
+		if item, err := acs.TodoCreate(todoForm, pool); err != nil {
 			c.JSON(400, utl.BodyErr("Todo create error"))
 		} else {
 			c.Writer.Header().Add("id", item.Id)
@@ -52,13 +54,19 @@ func AddTodoRoutes(pool *redis.Pool, routes *gin.Engine) {
 		id := c.Params.ByName("id")
 		if id == "" {
 			c.JSON(400, utl.BodyErr("Empty id"))
+			return
 		}
-		template := dom.TodoItem{}
-		if err := c.Bind(&template); err != nil {
+		todoForm := dom.TodoItem{}
+		if err := c.Bind(&todoForm); err != nil {
 			c.JSON(400, utl.BodyErr("wrong Todo params"))
+
 		}
-		if item, err := acs.TodoEdit(id, template, pool); err != nil {
-			c.JSON(400, utl.BodyErr("Todo edit error"))
+		if err := validator.Validate(todoForm); err != nil {
+			c.JSON(400, utl.BodyErr(err.Error()))
+			return
+		}
+		if item, err := acs.TodoEdit(id, todoForm, pool); err != nil {
+			c.JSON(400, utl.BodyErr(err.Error()))
 		} else {
 			c.Writer.Header().Add("id", item.Id)
 			c.JSON(200, item)
