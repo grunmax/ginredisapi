@@ -35,7 +35,7 @@ func TodoGetKeys(match string, pool *redis.Pool) ([]string, error) {
 	return results, nil
 }
 
-func TodoCreate(item dom.TodoItem, pool *redis.Pool) (*dom.TodoItem, error) {
+func TodoCreate(item dom.TodoForm, pool *redis.Pool) (*dom.TodoForm, error) {
 	c := pool.Get()
 	defer c.Close()
 	item.Id = utl.NewId()
@@ -51,7 +51,7 @@ func TodoCreate(item dom.TodoItem, pool *redis.Pool) (*dom.TodoItem, error) {
 	}
 }
 
-func TodoEdit(id string, item dom.TodoItem, pool *redis.Pool) (*dom.TodoItem, error) {
+func TodoEdit(id string, item dom.TodoForm, pool *redis.Pool) (*dom.TodoForm, error) {
 	c := pool.Get()
 	defer c.Close()
 	item.Id = id

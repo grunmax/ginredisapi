@@ -11,9 +11,6 @@ import (
 
 func AddTodoRoutes(pool *redis.Pool, routes *gin.Engine) {
 
-	routes.OPTIONS("/todo", func(c *gin.Context) { c.String(200, "") })
-	routes.OPTIONS("/todo/:id", func(c *gin.Context) { c.String(200, "") })
-
 	routes.GET("/todo", func(c *gin.Context) {
 		if keys, err := acs.TodoGetKeys("todo:*", pool); err != nil {
 			c.JSON(400, utl.BodyErr("Todo get keys error"))
@@ -33,9 +30,9 @@ func AddTodoRoutes(pool *redis.Pool, routes *gin.Engine) {
 	})
 
 	routes.POST("/todo", func(c *gin.Context) {
-		todoForm := dom.TodoItem{}
+		todoForm := dom.TodoForm{}
 		if err := c.Bind(&todoForm); err != nil {
-			c.JSON(400, utl.BodyErr("error bind post form"))
+			c.JSON(400, utl.BodyErr(err.Error()))
 			return
 		}
 		if err := validator.Validate(todoForm); err != nil {
@@ -56,10 +53,10 @@ func AddTodoRoutes(pool *redis.Pool, routes *gin.Engine) {
 			c.JSON(400, utl.BodyErr("Empty id"))
 			return
 		}
-		todoForm := dom.TodoItem{}
+		todoForm := dom.TodoForm{}
 		if err := c.Bind(&todoForm); err != nil {
-			c.JSON(400, utl.BodyErr("wrong Todo params"))
-
+			c.JSON(400, utl.BodyErr(err.Error()))
+			return
 		}
 		if err := validator.Validate(todoForm); err != nil {
 			c.JSON(400, utl.BodyErr(err.Error()))

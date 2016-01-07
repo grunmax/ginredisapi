@@ -11,7 +11,7 @@ func makeRoutes(api *gin.Engine) {
 
 	api.GET("/", func(c *gin.Context) {
 		if item, err := acs.TestFunc(1, "gin: redis works", pool); err != nil {
-			c.JSON(400, utl.BodyErr("gin: redis r/w error"))
+			c.JSON(400, utl.BodyErr(err.Error()))
 		} else {
 			c.JSON(200, item)
 		}
