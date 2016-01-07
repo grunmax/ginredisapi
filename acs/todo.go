@@ -6,7 +6,7 @@ import (
 	"github.com/grunmax/GinRedisApi/utl"
 )
 
-func TodoGetKeys(match string, pool *redis.Pool) ([]string, error) {
+func GetKeys(match string, pool *redis.Pool) ([]string, error) {
 	c := pool.Get()
 	defer c.Close()
 	var items []string

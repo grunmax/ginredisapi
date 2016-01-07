@@ -17,5 +17,9 @@ func makeRoutes(api *gin.Engine) {
 		}
 	})
 
-	ctr.AddTodoRoutes(pool, api)
+	ctr.AddTodoRoutes(che, pool, api)
+}
+
+func is404(c *gin.Context) {
+	c.JSON(404, utl.BodyErr("wrong page"))
 }

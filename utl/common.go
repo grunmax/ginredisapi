@@ -2,9 +2,10 @@ package utl
 
 import (
 	"fmt"
-	"github.com/go-ini/ini"
 	"log"
 	"os"
+
+	"github.com/go-ini/ini"
 )
 
 var errorlog *os.File
@@ -15,6 +16,8 @@ type Config struct {
 	RedisPassword  string
 	HttpUrl        string
 	MaxConnections int
+	CacheExpired   int
+	CacheCheck     int
 }
 
 type MyErr struct {
@@ -65,5 +68,7 @@ func ReadConfig() *Config {
 	config.MaxConnections, err = cfg.Section("redis").Key("maxconnections").Int()
 	Err("Wrong value for maxconnections", err)
 	config.HttpUrl = cfg.Section("gin").Key("url").String()
+	config.CacheExpired, err = cfg.Section("cache").Key("expiredminutes").Int()
+	config.CacheCheck, err = cfg.Section("cache").Key("checkminutes").Int()
 	return config
 }

@@ -1,18 +1,21 @@
 package ctr
 
 import (
+	"time"
+
 	"github.com/garyburd/redigo/redis"
 	"github.com/gin-gonic/gin"
 	"github.com/grunmax/GinRedisApi/acs"
 	"github.com/grunmax/GinRedisApi/dom"
 	"github.com/grunmax/GinRedisApi/utl"
+	"github.com/patrickmn/go-cache"
 	"gopkg.in/validator.v2"
 )
 
-func AddTodoRoutes(pool *redis.Pool, routes *gin.Engine) {
+func AddTodoRoutes(che *cache.Cache, pool *redis.Pool, routes *gin.Engine) {
 
 	routes.GET("/todo", func(c *gin.Context) {
-		if keys, err := acs.TodoGetKeys("todo:*", pool); err != nil {
+		if keys, err := acs.GetKeys("todo:*", pool); err != nil {
 			c.JSON(400, utl.BodyErr("Todo get keys error"))
 		} else {
 			c.JSON(200, keys)
@@ -22,8 +25,9 @@ func AddTodoRoutes(pool *redis.Pool, routes *gin.Engine) {
 	routes.GET("/todo/:id", func(c *gin.Context) {
 		id := c.Params.ByName("id")
 		if item, err := acs.TodoGetId(id, pool); err != nil {
-			c.JSON(400, utl.BodyErr("Todo getid error"))
+			c.JSON(400, utl.BodyErr(err.Error()))
 		} else {
+			che.Set(c.Request.RequestURI, item, 10*time.Minute)
 			c.Writer.Header().Add("id", item.Id)
 			c.JSON(200, item)
 		}
@@ -66,6 +70,7 @@ func AddTodoRoutes(pool *redis.Pool, routes *gin.Engine) {
 			c.JSON(400, utl.BodyErr(err.Error()))
 		} else {
 			c.Writer.Header().Add("id", item.Id)
+			che.Delete(c.Request.RequestURI)
 			c.JSON(200, item)
 		}
 	})
@@ -79,7 +84,7 @@ func AddTodoRoutes(pool *redis.Pool, routes *gin.Engine) {
 		if err := acs.TodoDeleteId(id, pool); err != nil {
 			c.JSON(400, utl.BodyErr("Todo delete id error"))
 		} else {
-			c.Writer.Header().Add("id", id)
+			che.Delete(c.Request.RequestURI)
 			c.JSON(200, utl.BodyOk("deleted"))
 		}
 	})
