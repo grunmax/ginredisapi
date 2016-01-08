@@ -1,4 +1,4 @@
-package dom
+package domn
 
 type TodoItem struct {
 	Id        string `redis:"id" 		json:"id"` //`json:"-"`

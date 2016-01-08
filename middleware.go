@@ -1,41 +1,44 @@
 package main
 
 import (
+	"strings"
+
 	"github.com/gin-gonic/gin"
-	"github.com/grunmax/GinRedisApi/acs"
-	"github.com/grunmax/GinRedisApi/utl"
+	"github.com/grunmax/GinRedisApi/accs"
+	"github.com/grunmax/GinRedisApi/util"
 )
 
 func useMiddleware(api *gin.Engine) {
+	//api.Use(DummyMiddleware)
 	api.Use(CORSMiddlewareMiddleware)
 	if cfg.AuthWorking {
 		api.Use(AuthMiddleware)
-		utl.Log("Auth on", "")
+		util.Log("Auth on", "")
 	} else {
-		utl.Log("Auth off", "")
+		util.Log("Auth off", "")
 	}
 	if cfg.CacheWorking {
 		api.Use(CacheMiddleware)
-		utl.Log("Cache on", "")
+		util.Log("Cache on", "")
 	} else {
-		utl.Log("Cache off", "")
+		util.Log("Cache off", "")
 	}
 }
 
 func DummyMiddleware(c *gin.Context) {
-	utl.Log("dummy says: ", c.Request.Method+c.Request.RequestURI)
+	util.Log("dummy says: ", c.Request.Method+c.Request.RequestURI)
 	c.Next()
 }
 
 func AuthMiddleware(c *gin.Context) {
 	if c.Request.Method != "PUT" {
-		cookievalue, err := utl.GetCookieValue("k_yak", c)
+		cookievalue, err := util.GetCookieValue("k_yak", c)
 		if err != nil {
-			c.JSON(401, utl.BodyErr("Access denied"))
+			c.JSON(401, util.BodyErr("Access denied"))
 			c.Abort()
 		} else {
-			if isexist, err := acs.KeyExistsCached(cookievalue, che, pool); err != nil || !isexist {
-				c.JSON(401, utl.BodyErr("Access denied"))
+			if isexist, err := accs.KeyExistsCached(cookievalue, che, pool); err != nil || !isexist {
+				c.JSON(401, util.BodyErr("Access denied"))
 				c.Abort()
 				//c.AbortWithStatus(401)
 			}
@@ -48,6 +51,15 @@ func CacheMiddleware(c *gin.Context) {
 	if c.Request.Method == "GET" {
 		item, isexist := che.Get(c.Request.RequestURI)
 		if isexist {
+			//util.Log("cache!", c.Request.RequestURI)
+			if strings.HasPrefix(c.Request.RequestURI, "/img/") {
+				c.Data(200, "image/jpeg", item.([]byte))
+				c.Abort()
+			}
+			if strings.HasPrefix(c.Request.RequestURI, "/file/") {
+				c.Data(200, "application/octet-stream", item.([]byte))
+				c.Abort()
+			}
 			c.JSON(200, item)
 			c.Abort()
 		}

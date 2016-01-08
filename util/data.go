@@ -1,4 +1,4 @@
-package utl
+package util
 
 import (
 	"github.com/garyburd/redigo/redis"
