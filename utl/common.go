@@ -18,6 +18,8 @@ type Config struct {
 	MaxConnections int
 	CacheExpired   int
 	CacheCheck     int
+	CacheWorking   bool
+	AuthWorking    bool
 }
 
 type MyErr struct {
@@ -70,5 +72,7 @@ func ReadConfig() *Config {
 	config.HttpUrl = cfg.Section("gin").Key("url").String()
 	config.CacheExpired, err = cfg.Section("cache").Key("expiredminutes").Int()
 	config.CacheCheck, err = cfg.Section("cache").Key("checkminutes").Int()
+	config.CacheWorking, err = cfg.Section("cache").Key("working").Bool()
+	config.AuthWorking, err = cfg.Section("auth").Key("working").Bool()
 	return config
 }

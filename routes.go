@@ -8,6 +8,7 @@ import (
 )
 
 func makeRoutes(api *gin.Engine) {
+	utl.Log("Server start", gin.Mode())
 
 	api.GET("/", func(c *gin.Context) {
 		if item, err := acs.TestFunc(1, "gin: redis works", pool); err != nil {
@@ -18,8 +19,9 @@ func makeRoutes(api *gin.Engine) {
 	})
 
 	ctr.AddTodoRoutes(che, pool, api)
+	ctr.AddUserRoutes(che, pool, api)
 }
 
 func is404(c *gin.Context) {
-	c.JSON(404, utl.BodyErr("wrong page"))
+	c.JSON(404, utl.BodyErr("wrong URL"))
 }

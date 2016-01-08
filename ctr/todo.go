@@ -12,6 +12,8 @@ import (
 	"gopkg.in/validator.v2"
 )
 
+const todoCacheLife = 10 * time.Minute
+
 func AddTodoRoutes(che *cache.Cache, pool *redis.Pool, routes *gin.Engine) {
 
 	routes.GET("/todo", func(c *gin.Context) {
@@ -27,8 +29,7 @@ func AddTodoRoutes(che *cache.Cache, pool *redis.Pool, routes *gin.Engine) {
 		if item, err := acs.TodoGetId(id, pool); err != nil {
 			c.JSON(400, utl.BodyErr(err.Error()))
 		} else {
-			che.Set(c.Request.RequestURI, item, 10*time.Minute)
-			c.Writer.Header().Add("id", item.Id)
+			che.Set(c.Request.RequestURI, item, todoCacheLife)
 			c.JSON(200, item)
 		}
 	})

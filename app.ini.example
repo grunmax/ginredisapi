@@ -1,0 +1,15 @@
+[redis]
+url = foo.server.net:6379
+password = somepassword
+maxconnections = 10
+
+[gin]
+url = localhost:3000
+
+[cache]
+working = 1
+expiredminutes = 5
+checkminutes = 1
+
+[auth]
+working = 1
